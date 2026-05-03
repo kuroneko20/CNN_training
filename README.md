@@ -45,8 +45,8 @@ CNN_training/
 | **LR head (warm-up)** | 1e-3 |
 | **LR backbone (fine-tune)** | 1e-5 |
 | **Weight decay** | 1e-4 |
-| **Scheduler** | CosineAnnealingLR (eta\_min=1e-6) |
-| **Loss** | CrossEntropyLoss (label\_smoothing=0.1) |
+| **Scheduler** | CosineAnnealingLR (eta_min=1e-6) |
+| **Loss** | CrossEntropyLoss (label_smoothing=0.1) |
 | **Unfreeze epoch** | 5 |
 | **Val split** | 20% (stratified, nếu không có sẵn split) |
 | **Seed** | 42 |
@@ -98,17 +98,23 @@ CNN_training/
 
 ### Bước 3 — Cấu hình dataset
 
-Mở file `configs/train.yaml` và thay `gdrive_file_id` bằng File ID của dataset bạn:
+> ✅ **Nếu dùng dataset `Landmark_Classification.zip` mặc định: không cần chỉnh gì.** File ID đã được điền sẵn trong `configs/train.yaml`.
+
+Nếu muốn dùng dataset khác, mở `configs/train.yaml` và thay `gdrive_file_id`:
 
 ```yaml
 dataset:
   gdrive_file_id: "YOUR_GOOGLE_DRIVE_FILE_ID_HERE"
 ```
 
-Lấy File ID từ link Google Drive:
+Lấy File ID từ link Google Drive của bạn:
 ```
 https://drive.google.com/file/d/<FILE_ID>/view
+                                  ^^^^^^^^
+                               copy phần này
 ```
+
+> ⚠️ Đảm bảo file Google Drive được đặt chế độ **"Anyone with the link"** thì `gdown` mới tải được.
 
 ### Bước 4 — Chạy training
 
@@ -118,32 +124,34 @@ https://drive.google.com/file/d/<FILE_ID>/view
 !bash train.sh
 ```
 
-**Cách B — Chạy từng bước:**
+> `train.sh` tự động nhận diện và cd vào đúng thư mục project, không cần thao tác thêm.
 
-```bash
-# 1. Tải và giải nén dataset
-!python -c "
+**Cách B — Chạy từng bước thủ công:**
+
+```python
+# Cell 1 — Tải và giải nén dataset
 import gdown, zipfile, os, yaml
 with open('configs/train.yaml') as f:
     cfg = yaml.safe_load(f)
-gdown.download(f'https://drive.google.com/uc?id={cfg[\"dataset\"][\"gdrive_file_id\"]}',
+gdown.download(f'https://drive.google.com/uc?id={cfg["dataset"]["gdrive_file_id"]}',
                cfg['dataset']['zip_path'], quiet=False)
 os.makedirs(cfg['dataset']['data_root'], exist_ok=True)
 with zipfile.ZipFile(cfg['dataset']['zip_path']) as zf:
     zf.extractall(cfg['dataset']['data_root'])
 print('Done!')
-"
+```
 
-# 2. Phân tích dataset
+```bash
+# Cell 2 — Phân tích dataset (EDA)
 !python scripts/preprocess_data.py --data_root /content/dataset
 
-# 3. Train
+# Cell 3 — Train
 !python scripts/train.py --config configs/train.yaml
 ```
 
 **Cách C — Dùng notebook có sẵn:**
 
-Mở file `CNN_Training_Complete_v2_run.ipynb` trực tiếp trên Colab, chạy từng cell.
+Upload file `CNN_Training_Complete_v2_run.ipynb` lên Colab rồi chạy từng cell.
 
 ### Bước 5 — Kết quả
 
@@ -159,34 +167,97 @@ Sau khi train xong, file `all_results.zip` sẽ được tự động download. 
 
 ## 🔍 Dự đoán ảnh mới (Inference)
 
-```bash
-!git clone https://github.com/kuroneko20/CNN_training.git
-%cd CNN_training
-!pip install -r requirements.txt
+Inference đã có sẵn trong project, **không cần viết thêm code**. Làm theo các bước sau:
 
-# Dự đoán 1 ảnh
+### Bước 1 — Lấy danh sách class names
+
+Sau khi `train.sh` chạy xong, script tự in ra danh sách lớp. Tìm dòng có dạng:
+
+```
+✅ Dataset: 5 lớp — ['HaLong', 'HoiAn', 'HoanKiem', 'MySon', 'PhongNha']
+```
+
+Copy danh sách đó, bỏ dấu ngoặc vuông và quotes, nối bằng dấu phẩy:
+```
+HaLong,HoiAn,HoanKiem,MySon,PhongNha
+```
+
+> Nếu không nhớ, chạy lệnh này để xem lại:
+> ```python
+> from torchvision import datasets
+> ds = datasets.ImageFolder('/content/dataset')
+> print(','.join(ds.classes))
+> ```
+
+### Bước 2 — Upload ảnh cần dự đoán lên Colab
+
+Dùng Files panel bên trái → Upload, hoặc chạy trong notebook:
+
+```python
+from google.colab import files
+uploaded = files.upload()   # chọn ảnh từ máy tính
+```
+
+### Bước 3 — Chạy inference
+
+**Dự đoán 1 ảnh:**
+
+```bash
 !python scripts/inference.py \
     --config configs/inference.yaml \
     --weights /content/best_model.pth \
     --input /content/test.jpg \
-    --class_names "cat,dog,bird"
+    --class_names "HaLong,HoiAn,HoanKiem,MySon,PhongNha"
+```
 
-# Dự đoán cả thư mục (lưu kết quả ra CSV)
+Output mẫu:
+```
+📷 Ảnh   : test.jpg
+   Dự đoán: HoiAn
+   Tin cậy: 94.32%
+
+   Phân phối xác suất:
+   HoiAn               : 94.32%  ██████████████████████████████
+   HaLong              :  3.21%  █
+   HoanKiem            :  1.47%
+   MySon               :  0.72%
+   PhongNha            :  0.28%
+```
+
+**Dự đoán cả thư mục (lưu kết quả ra CSV):**
+
+```bash
 !python scripts/inference.py \
     --config configs/inference.yaml \
     --weights /content/best_model.pth \
     --input /content/test_folder/ \
-    --class_names "cat,dog,bird"
+    --class_names "HaLong,HoiAn,HoanKiem,MySon,PhongNha"
 ```
 
-Hoặc dùng script:
+Kết quả lưu tại `/content/predictions.csv`:
+```
+file,prediction,confidence
+/content/test_folder/img1.jpg,HoiAn,0.9432
+/content/test_folder/img2.jpg,HaLong,0.8811
+...
+```
+
+**Hoặc dùng shell script:**
 
 ```bash
 !bash inference.sh \
     --input /content/test.jpg \
     --weights /content/best_model.pth \
-    --class_names "cat,dog,bird"
+    --class_names "HaLong,HoiAn,HoanKiem,MySon,PhongNha"
 ```
+
+### Lưu ý
+
+| Tình huống | Cách xử lý |
+|---|---|
+| Confidence < 50% | Model không chắc chắn — ảnh có thể không thuộc dataset |
+| Muốn dùng model ở session khác | Upload lại `best_model.pth` từ `all_results.zip` đã download |
+| Quên class names | Chạy lệnh xem classes ở Bước 1 |
 
 ---
 

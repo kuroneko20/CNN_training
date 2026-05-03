@@ -3,11 +3,16 @@
 # inference.sh — Chạy dự đoán trên ảnh mới
 #
 # Cách dùng:
-#   bash inference.sh --input /content/test.jpg --class_names "cat,dog,bird"
-#   bash inference.sh --input /content/test_folder/ --class_names "cat,dog,bird"
+#   bash inference.sh --input /content/test.jpg --class_names "cat,dog"
+#   bash inference.sh --input /content/test_folder/ --class_names "cat,dog"
 # ──────────────────────────────────────────────────────────────────────
 
 set -e
+
+# ─── Tự động cd vào đúng thư mục project ──────────────────────────────
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR"
+echo "📂 Working directory: $(pwd)"
 
 echo "============================================================"
 echo "  CNN Inference — EfficientNet-B0"

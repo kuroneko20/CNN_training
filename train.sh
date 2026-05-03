@@ -4,9 +4,15 @@
 #
 # Cách dùng:
 #   bash train.sh
+#   hoặc: bash CNN_training/train.sh
 # ──────────────────────────────────────────────────────────────────────
 
 set -e  # Dừng ngay nếu có lỗi
+
+# ─── Tự động cd vào đúng thư mục project ──────────────────────────────
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR"
+echo "📂 Working directory: $(pwd)"
 
 echo "============================================================"
 echo "  CNN Training — EfficientNet-B0"
@@ -26,8 +32,8 @@ import gdown, zipfile, os, yaml
 with open('configs/train.yaml', 'r') as f:
     cfg = yaml.safe_load(f)
 
-file_id  = cfg['dataset']['gdrive_file_id']
-zip_path = cfg['dataset']['zip_path']
+file_id   = cfg['dataset']['gdrive_file_id']
+zip_path  = cfg['dataset']['zip_path']
 data_root = cfg['dataset']['data_root']
 
 print(f'Downloading file ID: {file_id}')
