@@ -18,16 +18,14 @@ echo "============================================================"
 echo "  CNN Inference — EfficientNet-B0"
 echo "============================================================"
 
-# ─── Cài đặt thư viện ─────────────────────────────────────────────
 echo ""
 echo "[1/2] Kiểm tra thư viện..."
 pip install -q torchinfo matplotlib seaborn pyyaml
 
-# ─── Chạy inference ───────────────────────────────────────────────
 echo ""
 echo "[2/2] Bắt đầu inference..."
-python3 scripts/inference.py \
-    --config configs/inference.yaml \
+python3 "$SCRIPT_DIR/scripts/inference.py" \
+    --config "$SCRIPT_DIR/configs/inference.yaml" \
     "$@"
 
 echo ""

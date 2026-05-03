@@ -1,13 +1,9 @@
 #!/bin/bash
 # ──────────────────────────────────────────────────────────────────────
 # train.sh — Chạy pipeline huấn luyện đầy đủ trên Google Colab
-#
-# Cách dùng:
-#   bash train.sh
-#   hoặc: bash CNN_training/train.sh
 # ──────────────────────────────────────────────────────────────────────
 
-set -e  # Dừng ngay nếu có lỗi
+set -e
 
 # ─── Tự động cd vào đúng thư mục project ──────────────────────────────
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -27,9 +23,12 @@ pip install -q gdown torchinfo matplotlib seaborn scikit-learn pyyaml
 echo ""
 echo "[2/4] Tải dataset từ Google Drive..."
 python3 -c "
-import gdown, zipfile, os, yaml
+import sys, gdown, zipfile, os, yaml
 
-with open('configs/train.yaml', 'r') as f:
+# Dùng đường dẫn tuyệt đối truyền từ bash
+config_path = sys.argv[1]
+
+with open(config_path, 'r') as f:
     cfg = yaml.safe_load(f)
 
 file_id   = cfg['dataset']['gdrive_file_id']
@@ -43,19 +42,20 @@ os.makedirs(data_root, exist_ok=True)
 with zipfile.ZipFile(zip_path, 'r') as zf:
     zf.extractall(data_root)
 print('Dataset giải nén thành công.')
-"
+" "$SCRIPT_DIR/configs/train.yaml"
 
 # ─── Bước 3: Phân tích dataset (EDA) ──────────────────────────────
 echo ""
 echo "[3/4] Phân tích dataset..."
-python3 scripts/preprocess_data.py \
+python3 "$SCRIPT_DIR/scripts/preprocess_data.py" \
     --data_root /content/dataset \
     --output_dir /content
 
 # ─── Bước 4: Huấn luyện ───────────────────────────────────────────
 echo ""
 echo "[4/4] Bắt đầu huấn luyện..."
-python3 scripts/train.py --config configs/train.yaml
+python3 "$SCRIPT_DIR/scripts/train.py" \
+    --config "$SCRIPT_DIR/configs/train.yaml"
 
 echo ""
 echo "============================================================"
