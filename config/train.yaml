@@ -1,0 +1,75 @@
+# ──────────────────────────────────────────────────────────────────────
+# train.yaml — Cấu hình huấn luyện EfficientNet-B0
+# ──────────────────────────────────────────────────────────────────────
+
+# ─── Dataset ──────────────────────────────────────────────────────────
+dataset:
+  # Google Drive file ID của dataset .zip
+  # Thay bằng FILE_ID của bạn: https://drive.google.com/file/d/<FILE_ID>/view
+  gdrive_file_id: "1lASlW-wSzG4LtXai0vyUVeKTvgfqlhFL"
+  zip_path: "/content/dataset.zip"
+  data_root: "/content/dataset"
+  # Tỉ lệ validation khi không có sẵn train/val split
+  val_split: 0.2
+  seed: 42
+
+# ─── Tiền xử lý ───────────────────────────────────────────────────────
+preprocessing:
+  img_size: 224           # EfficientNet-B0 chuẩn dùng 224×224
+  imagenet_mean: [0.485, 0.456, 0.406]
+  imagenet_std:  [0.229, 0.224, 0.225]
+
+# ─── Data Augmentation (chỉ áp dụng cho tập train) ────────────────────
+augmentation:
+  resize_to: 256          # Resize lên 256 rồi crop về img_size
+  random_crop: true
+  horizontal_flip_prob: 0.5
+  color_jitter:
+    brightness: 0.2
+    contrast:   0.2
+    saturation: 0.2
+  rotation_degrees: 15
+
+# ─── DataLoader ───────────────────────────────────────────────────────
+dataloader:
+  batch_size: 64          # Tối ưu cho GPU T4 (15 GB VRAM)
+  num_workers: 4
+  pin_memory: true
+  persistent_workers: true
+  prefetch_factor: 2
+
+# ─── Mô hình ──────────────────────────────────────────────────────────
+model:
+  backbone: "efficientnet_b0"
+  pretrained_weights: "IMAGENET1K_V1"
+  classifier_hidden: 256   # 1280 → 256 → num_classes
+  dropout1: 0.3
+  dropout2: 0.2
+
+# ─── Training ─────────────────────────────────────────────────────────
+training:
+  num_epochs: 20
+  unfreeze_epoch: 5        # Epoch bắt đầu unfreeze backbone (giai đoạn 2)
+
+# ─── Optimizer ────────────────────────────────────────────────────────
+optimizer:
+  name: "AdamW"
+  lr_head: 1.0e-3          # LR cho classifier head (giai đoạn warm-up)
+  lr_backbone: 1.0e-5      # LR cho backbone (sau khi unfreeze)
+  weight_decay: 1.0e-4
+
+# ─── Scheduler ────────────────────────────────────────────────────────
+scheduler:
+  name: "CosineAnnealingLR"
+  eta_min: 1.0e-6
+
+# ─── Loss ─────────────────────────────────────────────────────────────
+loss:
+  name: "CrossEntropyLoss"
+  label_smoothing: 0.1
+
+# ─── Đầu ra ───────────────────────────────────────────────────────────
+output:
+  model_path: "/content/best_model.pth"
+  results_dir: "/content/results"
+  zip_path: "/content/all_results.zip"

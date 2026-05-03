@@ -1,0 +1,33 @@
+# ──────────────────────────────────────────────────────────────────────
+# inference.yaml — Cấu hình inference / dự đoán
+# ──────────────────────────────────────────────────────────────────────
+
+# ─── Model ────────────────────────────────────────────────────────────
+model:
+  backbone: "efficientnet_b0"
+  # Đường dẫn tới file trọng số đã train
+  weights_path: "/content/best_model.pth"
+  # Số lớp phân loại — phải khớp với lúc train
+  num_classes: null         # null = tự detect từ checkpoint
+
+# ─── Tiền xử lý ảnh đầu vào ───────────────────────────────────────────
+preprocessing:
+  img_size: 224
+  imagenet_mean: [0.485, 0.456, 0.406]
+  imagenet_std:  [0.229, 0.224, 0.225]
+
+# ─── Inference ────────────────────────────────────────────────────────
+inference:
+  # Thư mục chứa ảnh cần dự đoán HOẶC đường dẫn tới 1 ảnh cụ thể
+  input_path: "/content/test_images"
+  # Lưu kết quả predictions ra file
+  output_csv: "/content/predictions.csv"
+  # Số ảnh mẫu hiển thị
+  show_samples: 16
+  # Ngưỡng confidence tối thiểu để hiển thị cảnh báo
+  confidence_threshold: 0.5
+
+# ─── Batch inference ──────────────────────────────────────────────────
+batch:
+  batch_size: 32
+  num_workers: 4
