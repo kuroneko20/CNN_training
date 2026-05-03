@@ -87,8 +87,9 @@ CNN_training/
 
 ```bash
 !git clone https://github.com/kuroneko20/CNN_training.git
-%cd CNN_training
 ```
+
+> ⚠️ **Không cần `%cd CNN_training`** — các script tự tìm đúng thư mục.
 
 ### Bước 2 — Cài đặt thư viện
 
@@ -121,10 +122,8 @@ https://drive.google.com/file/d/<FILE_ID>/view
 **Cách A — Chạy toàn bộ pipeline 1 lần (khuyên dùng):**
 
 ```bash
-!bash train.sh
+!bash /content/CNN_training/train.sh
 ```
-
-> `train.sh` tự động nhận diện và cd vào đúng thư mục project, không cần thao tác thêm.
 
 **Cách B — Chạy từng bước thủ công:**
 
@@ -245,7 +244,7 @@ file,prediction,confidence
 **Hoặc dùng shell script:**
 
 ```bash
-!bash inference.sh \
+!bash /content/CNN_training/inference.sh \
     --input /content/test.jpg \
     --weights /content/best_model.pth \
     --class_names "HaLong,HoiAn,HoanKiem,MySon,PhongNha"

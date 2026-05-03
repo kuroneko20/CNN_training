@@ -3,15 +3,16 @@
 # inference.sh — Chạy dự đoán trên ảnh mới
 #
 # Cách dùng:
-#   bash inference.sh --input /content/test.jpg --class_names "cat,dog"
-#   bash inference.sh --input /content/test_folder/ --class_names "cat,dog"
+#   !bash /content/CNN_training/inference.sh \
+#       --input /content/test.jpg \
+#       --weights /content/best_model.pth \
+#       --class_names "classA,classB,classC"
 # ──────────────────────────────────────────────────────────────────────
 
 set -e
 
-# ─── Tự động cd vào đúng thư mục project ──────────────────────────────
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-cd "$SCRIPT_DIR"
+PROJECT="/content/CNN_training"
+cd "$PROJECT"
 echo "📂 Working directory: $(pwd)"
 
 echo "============================================================"
@@ -24,8 +25,8 @@ pip install -q torchinfo matplotlib seaborn pyyaml
 
 echo ""
 echo "[2/2] Bắt đầu inference..."
-python3 "$SCRIPT_DIR/scripts/inference.py" \
-    --config "$SCRIPT_DIR/configs/inference.yaml" \
+python3 "$PROJECT/scripts/inference.py" \
+    --config "$PROJECT/configs/inference.yaml" \
     "$@"
 
 echo ""
